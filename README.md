@@ -17,4 +17,5 @@
 * Open Game Art Users:
   * athile
   * CharlesGabriel
+  * Tom L
 * Dmitry Baranovskiy for Raphaël JS

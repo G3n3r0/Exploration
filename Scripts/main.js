@@ -9,9 +9,13 @@ window.onload = function() {
         width: 64,
         height: 64
     };
-    window.playDims = {
+    /*window.playDims = {
         width: 48,
         height: 54
+    };*/
+    window.playDims = {
+        width: 32,
+        height: 48
     };
     
     function Character(x, y, width, height, imgSrc, name) {
@@ -109,7 +113,14 @@ window.onload = function() {
     
     function init() {
         homestead("grass");
-        window.player = new Player(paper.width/2-window.playDims.width/2, paper.height/2-window.playDims.height/2, "Graphics/test_sprite_1.png", "Bryan Cabreja");
+        /*var img = new Image();
+        img.onload = function() {
+            window.player = new Player(paper.width/2-window.playDims.width/2, paper.height/2-window.playDims.height/2, threed(this), "Bryan Cabreja");
+            window.player.draw();
+            window.intVal = setInterval(tick, 1000/30);
+        };
+        img.src = "Graphics/littledude_on_own.png";*/
+        window.player = new Player(paper.width/2-window.playDims.width/2, paper.height/2-window.playDims.height/2, "Graphics/littledude_on_own.png", "Bryan Cabreja");
         window.player.draw();
         window.intVal = setInterval(tick, 1000/30);
     }
