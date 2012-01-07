@@ -21,8 +21,11 @@ window.onload = function() {
     
     window.rsrc = {
         grass: "Graphics/grass04.png",
-        house: "Graphics/Wood Block_smallified.png"
+        house: "Graphics/heal-sky-1_transp.png",
+        landPort: "Graphics/watercolor_map_australia_shadow.png",
+        dirt: "Graphics/dirt_0.png"
     };
+    var groundMats = ["grass", "dirt"];
     window.tileDims = {
         width: 64,
         height: 64
@@ -39,9 +42,17 @@ window.onload = function() {
         width: 32,
         height: 42
     };
-    window.houseDims = {
+    /*window.houseDims = {
         width: 64,
         height: 77
+    };*/
+    window.houseDims = {
+        width: 64,
+        height: 64
+    };
+    window.landPortDims = {
+        width: 64,
+        height: 64
     };
     
     function Building(x, y, width, height, imgSrc, name) {
@@ -62,17 +73,29 @@ window.onload = function() {
             //this.img.node.title;
             return this;
         };
+        this.setContact = function(func) {
+            this.oncontact = func;
+            return this;
+        };
     }
     function House(x,y, imgSrc, name) {
         Building.call(this, x, y, window.houseDims.width, window.houseDims.height, imgSrc, name);
     }
     House.prototype = new Building();
-    House.prototype.setContact = function(func) {
+    /*House.prototype.setContact = function(func) {
         this.oncontact = func;
         return this;
-    };
+    };*/
     /*House.prototype.oncontact = function() {
         alert("Kaboom!");
+    };*/
+    function LandPort(x, y, imgSrc, name) {
+        Building.call(this, x, y, window.landPortDims.width, window.landPortDims.height, imgSrc, name);
+    }
+    LandPort.prototype = new Building();
+    /*LandPort.prototype.setContact = function(func) {
+        this.oncontact = func;
+        return this;
     };*/
     
     function Character(x, y, width, height, imgSrc, name) {
@@ -119,6 +142,40 @@ window.onload = function() {
             if(r && this.x+this.width<paper.width) {
                 lr += this.spd;
             }
+        } else if(window.mode=="land") {
+            if(u) {
+                ud -= this.spd;
+            }
+            if(d) {
+                ud += this.spd;
+            }
+            if(l) {
+                lr -= this.spd;
+            }
+            if(r) {
+                lr += this.spd;
+            }
+            
+            if(this.y<0) {
+                window.clearInterval(window.intVal);
+                //this.y = paper.height-this.height-6;
+                var p = window.player;
+                this.img.animate({y: paper.height-this.height-6}, 500, null, function() {
+                    console.log(this,p);
+                    p.y = paper.height-p.height-6;
+                    genRoom(0);
+                    window.intVal = setInterval(tick, 1000/30);
+                });
+                for(var i=0;i<window.tiles.length;i++) {
+                    //window.tiles[i].animate({y: paper.height}, 500, null, genRoom);
+                    window.tiles[i].animate({y: paper.height}, 500);
+                }
+                //genRoom(0);
+                //ud = 0;
+            } else if(this.y>paper.height) {
+                this.y = 6;
+                genRoom(0);
+            }
         }
         this.x += lr;
         this.y += ud;
@@ -134,26 +191,26 @@ window.onload = function() {
     var u,d,l,r = false;
     document.onkeydown = function(e) {
         console.log(e.which);
-        if(e.which===38) {
+        if(e.which===38 || e.which===87) {
             u = true;
-        } else if(e.which===40) {
+        } else if(e.which===40 || e.which===83) {
             d = true;
-        } else if(e.which===39) {
+        } else if(e.which===39 || e.which===68) {
             r = true;
-        } else if(e.which===37) {
+        } else if(e.which===37 || e.which===65) {
             l = true;
         } else if(e.which===16) {
             window.player.spd = 9;
         }
     };
     document.onkeyup = function(e) {
-        if(e.which===38) {
+        if(e.which===38 || e.which===87) {
             u = false;
-        } else if(e.which===40) {
+        } else if(e.which===40 || e.which===83) {
             d = false;
-        } else if(e.which===39) {
+        } else if(e.which===39 || e.which===68) {
             r = false;
-        } else if(e.which===37) {
+        } else if(e.which===37 || e.which===65) {
             l = false;
         } else if(e.which===16) {
             window.player.spd = 3;
@@ -186,6 +243,35 @@ window.onload = function() {
             //alert("Boom");
             window.player.health = 100;
         }).draw());
+        window.buildings.push(new LandPort(75, 75, window.rsrc.landPort, "Land Port").setContact(function() {
+            land();
+        }).draw());
+    }
+    function genRoom(numEnems) {
+        var mat = groundMats[Math.floor(Math.random()*groundMats.length)];
+        var matURL = window.rsrc[mat];
+        for(var i=0;i<paper.width/window.tileDims.width;i++) {
+            for(var j=0;j<paper.height/window.tileDims.height;j++) {
+                //var m = paper.image(matURL,i*window.tileDims.width,j*window.tileDims.height, window.tileDims.width, window.tileDims.height);
+                var m = paper.image(matURL,i*window.tileDims.width,0, window.tileDims.width, window.tileDims.height);
+                m.animate({y: window.tileDims.height*j}, 500);
+                window.tiles.push(m);
+            }
+        }
+        window.player.img.toFront();
+    }
+    function land() {
+        window.mode = "land";
+        //window.tiles = [];
+        for(var i=0;i<window.tiles.length;i++) {
+            window.tiles[i].remove();
+        }
+        for(var j=0;j<window.buildings.length;j++) {
+            window.buildings[j].img.remove();
+        }
+        window.tiles = [];
+        window.buildings = [];
+        genRoom(1);
     }
     
     function rain() {
@@ -198,6 +284,7 @@ window.onload = function() {
     
     function init() {
         homestead("grass");
+        //land();
         /*var img = new Image();
         img.onload = function() {
             window.player = new Player(paper.width/2-window.playDims.width/2, paper.height/2-window.playDims.height/2, threed(this), "Bryan Cabreja");
@@ -210,7 +297,7 @@ window.onload = function() {
         window.intVal = setInterval(tick, 1000/30);
         //window.weatherImage = paper.image("Graphics/sea_rain.gif",0,0,640,480).attr("opacity", "0.5");
         //initSnow("snowG",0,0,640,480);
-        rain();
+        //rain();
         //snow();
     }
     init();
